@@ -5,12 +5,13 @@ export const useAuthStore = create((set) => ({
     user: null,
     token: null,
     isLoading: false,
+    isCheckingAuth: true,
 
     register: async (username, email, password) => {
 
         set({ isLoading: true });
         try {
-            const response = await fetch(`http://localhost:3000/api/auth/register`, {
+            const response = await fetch(`http://192.168.0.100:3000/api/auth/register`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
@@ -40,7 +41,7 @@ export const useAuthStore = create((set) => ({
 
         set({ isLoading: true });
         try {
-            const response = await fetch(`http://localhost:3000/api/auth/login`, {
+            const response = await fetch(`http://192.168.0.102:3000/api/auth/login`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
@@ -73,6 +74,8 @@ export const useAuthStore = create((set) => ({
             set({ token, user });
         } catch (error) {
             console.log("Error checking auth:", error);
+        } finally {
+            set({ isCheckingAuth: false });
         }
     },
 

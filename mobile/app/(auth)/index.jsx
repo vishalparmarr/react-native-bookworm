@@ -13,7 +13,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, isCheckingAuth } = useAuthStore();
 
   const handleLogin = async () => {
 
@@ -23,6 +23,8 @@ export default function Login() {
       Alert.alert("Error", result.error);
     }
   }
+
+  if (isCheckingAuth) return null;
 
   return (
     <KeyboardAvoidingView 
