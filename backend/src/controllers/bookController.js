@@ -2,27 +2,25 @@ import Book from "../models/Book.js";
 import cloudinary from "../lib/cloudinary.js";
 
 export const books = async (req, res) => {
-
     try {
-        const page = req.query.page || 1;
-        const limit = req.query.limit || 5;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
         const skip = (page - 1) * limit;
 
         const books = await Book.find()
-            .populate("user", "user profileImage")
-            .sort({ createdAt: -1 })    //descending order
+            .populate("user", "username profileImage")
+            .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit)
+            .limit(limit);
 
-        const totalBooks = await Book.coutDocuments();
+        const totalBooks = await Book.countDocuments();
 
-        res.send(books({
+        res.status(200).json({
             books,
             currentPage: page,
             totalBooks,
             totalPages: Math.ceil(totalBooks / limit)
-        }))
-        res.status(200).json({ message: "Books fetched successfully" });
+        });
 
     } catch (error) {
         console.log("Error in getting books", error);
@@ -31,28 +29,29 @@ export const books = async (req, res) => {
 }
 
 export const createBook = async (req, res) => {
-
-    const { title, caption, image, rating } = req.body;
-
     try {
+        const { title, caption, image, rating } = req.body;
+
         if (!title || !caption || !image || !rating) {
             return res.status(400).json({ message: "Please fill all the fields" });
         }
 
+        // Check if book already exists
+        const existingBook = await Book.findOne({ title });
+        if (existingBook) {
+            return res.status(400).json({ message: "Book already exists" });
+        }
+
         //upload image to cloudinary
-        const uploadResonse = await cloudinary.uploader.upload(image);
-        const imageUrl = uploadResonse.secure_url;
-
-        const book = Book.findOne({ title });
-
-        if (!book) return res.status(400).json({ message: "Book already exists" });
+        const uploadResponse = await cloudinary.uploader.upload(image);
+        const imageUrl = uploadResponse.secure_url;
 
         const newBook = new Book({
             title,
             caption,
             image: imageUrl,
-            rating,
-            user: req.user._id
+            ratings: rating,
+            user: req.user._id,
         });
 
         await newBook.save();

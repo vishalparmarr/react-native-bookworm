@@ -7,4 +7,9 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*'],
   },
-]);
+]
+);
+
+module.exports = {
+  plugins: [[ 'react-native-dotenv']]
+}
