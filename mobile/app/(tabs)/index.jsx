@@ -1,5 +1,5 @@
 import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native'
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -8,6 +8,7 @@ import styles from '../../assets/styles/home.styles'
 import COLORS from '../../constants/colors';
 import { formatPublishDate } from '../lib/util';
 import Loader from '../../components/Loader';
+import { API_URI } from '../../constants/api';
 
 export default function Home() {
 
@@ -19,43 +20,52 @@ export default function Home() {
 
   const { token } = useAuthStore();
 
-  const fetchBooks = async (pageNum = 1, refreshing = false) => {
+  const fetchBooks = useCallback(async (pageNum = 1, refreshing = false) => {
     try {
-
       if (refreshing) setIsRefreshing(true);
       else if (pageNum === 1) setIsLoading(true);
-      const response = await fetch(`http://192.168.0.100:3000/api/books?page=${pageNum}&limit=5`, {
+
+      const response = await fetch(`${API_URI}/books?page=${pageNum}&limit=5`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-      console.log(response);
+
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || 'Failed to fetch books');
       }
 
-      const uniqueBooks = refreshing || pageNum === 1
-        ? data.books
-        : Array.from(new Set([...books, ...data.books].map(book => book._id)))
-          .map(id => [...books, ...data.books].find(book => book._id === id));
-
-      setIsBooks(uniqueBooks);
+      setIsBooks(prevBooks => {
+        if (refreshing || pageNum === 1) return data.books;
+        
+        // Create a map of existing books for faster lookup
+        const existingBooks = new Map(prevBooks.map(book => [book._id, book]));
+        
+        // Add new unique books
+        data.books.forEach(book => {
+          if (!existingBooks.has(book._id)) {
+            existingBooks.set(book._id, book);
+          }
+        });
+        
+        return Array.from(existingBooks.values());
+      });
 
       setIsHasMore(pageNum < data.totalPages);
       setIsPage(pageNum);
     } catch (error) {
-      // console.log("Error fetching books:", error);
+      console.log("Error fetching books:", error);
     } finally {
       if (refreshing) setIsRefreshing(false);
       else setIsLoading(false);
     }
-  }
+  }, [token]);
 
   useEffect(() => {
     fetchBooks();
-  })
+  }, [fetchBooks]);
 
   const handleLoadMore = async () => {
     if (hasMore && !loading && !refreshing) {
@@ -88,20 +98,21 @@ export default function Home() {
 
   )
 
-  const renderRatingStars = (ratings) => {
-    const star = [];
+   const renderRatingStars = (ratings) => {
+    const stars = [];
     for (let i = 1; i <= 5; i++) {
-      star.push(
+      stars.push(
         <Ionicons
-          key={i}
+          key={`star-${i}`}
           name={i <= ratings ? 'star' : 'star-outline'}
           size={16}
           color={i <= ratings ? "#f4b400" : COLORS.textSecondary}
           style={{ marginRight: 2 }}
         />
-      )
+      );
     }
-  }
+    return stars;
+  };
 
   if (loading) return <Loader />
 

@@ -3,6 +3,7 @@ import { View, Text, Alert, FlatList, TouchableOpacity, RefreshControl } from 'r
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
+import { API_URI } from '../../constants/api'
 
 import { useAuthStore } from '../../store/authStore'
 import styles from '../../assets/styles/profile.styles'
@@ -10,6 +11,7 @@ import ProfileHeader from '../../components/ProfileHeader'
 import LogoutButton from '../../components/LogoutButton'
 import COLORS from '../../constants/colors'
 import Loader from '../../components/Loader'
+import { ActivityIndicator } from 'react-native'
 
 export default function Profile() {
   const [books, setIsBooks] = useState([]);
@@ -23,7 +25,8 @@ export default function Profile() {
     try {
       setIsLoading(true);
 
-      const response = await fetch('http://192.168.0.100:3000/api/user', {
+      const response = await fetch(`${API_URI}/books/user`, {
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
         }
@@ -52,7 +55,7 @@ export default function Profile() {
   const handleDeleteBook = async (bookId) => {
     try {
       setIsDeleteBookId(bookId);
-      const response = await fetch(`http://192.168.0.102:3000/api/books/${bookId}`, {
+      const response = await fetch(`${API_URI}/books/${bookId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -81,6 +84,22 @@ export default function Profile() {
       },]);
   };
 
+  const renderRatingStars = (ratings) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Ionicons
+          key={`star-${i}`}
+          name={i <= ratings ? 'star' : 'star-outline'}
+          size={14}
+          color={i <= ratings ? "#f4b400" : COLORS.textSecondary}
+          style={{ marginRight: 2 }}
+        />
+      );
+    }
+    return stars;
+  };
+
   const renderBookItem = ({ item }) => (
     <View style={styles.bookItem}>
       <Image source={item.image} style={styles.bookImage} />
@@ -94,40 +113,28 @@ export default function Profile() {
       </View>
 
       <TouchableOpacity style={styles.deleteButton} onPress={() => confirmDelete(item._id)}>
-        {deleteBookId === item._id ? (<ActivityIndicator size="small" color={COLORS.primary} />) :
-          (<Ionicons name='trash-outline' size={20} color={COLORS.primary} />)}
+        {deleteBookId === item._id ? (
+          <ActivityIndicator size="small" color={COLORS.primary} />
+        ) : (
+          <Ionicons name='trash-outline' size={20} color={COLORS.primary} />
+        )}
       </TouchableOpacity>
     </View>
-  )
-
-  const renderRatingStars = (ratings) => {
-    const star = [];
-    for (let i = 1; i <= 5; i++) {
-      star.push(
-        <Ionicons
-          key={i}
-          name={i <= ratings ? 'star' : 'star-outline'}
-          size={14}
-          color={i <= ratings ? "#f4b400" : COLORS.textSecondary}
-          style={{ marginRight: 2 }}
-        />
-      )
-    }
-  }
+  );
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await fetchData();
     setIsRefreshing(false);
+  };
 
-  }
-  if (loading && !refreshing) return <Loader />
+  if (loading && !refreshing) return <Loader />;
+
   return (
     <View style={styles.container}>
       <ProfileHeader />
       <LogoutButton />
 
-      {/* YOUR RECOMMENDATIONS */}
       <View style={styles.booksHeader}>
         <Text style={styles.bookTitle}>Your Recommendations</Text>
         <Text style={styles.booksCount}>{books.length}</Text>
@@ -136,7 +143,7 @@ export default function Profile() {
       <FlatList
         data={books}
         renderItem={renderBookItem}
-        keyExtractor={(item) => item._id}
+        keyExtractor={item => item._id}
         contentContainerStyle={styles.booksList}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -158,5 +165,5 @@ export default function Profile() {
         }
       />
     </View>
-  )
+  );
 }

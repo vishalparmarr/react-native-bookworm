@@ -6,14 +6,9 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 
 import { useAuthStore } from '../../store/authStore';
+import { API_URI } from '../../constants/api';
 import styles from '../../assets/styles/create.styles';
 import COLORS from '../../constants/colors';
-
-// Use your computer's IP address here - replace with your actual IP
-const API_URL = Platform.select({
-  // For physical device - REPLACE 192.168.0.105 with your computer's IP address
-  default: 'http://192.168.0.100:3000/api/books'
-});
 
 export default function Create() {
 
@@ -79,8 +74,6 @@ export default function Create() {
 
     try {
       setIsLoading(true);
-      console.log('Attempting to create book...');
-      console.log('Using API URL:', API_URL);
 
       const uriParts = image.split('.');
       const fileType = uriParts[uriParts.length - 1];
@@ -88,8 +81,7 @@ export default function Create() {
 
       const imageDataUrl = `data:${imageType};base64,${imageBase64}`;
 
-      console.log('Making network request...');
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${API_URI}/books`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

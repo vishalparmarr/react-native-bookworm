@@ -1,0 +1,1 @@
+export const API_URI = 'https://react-native-bookworm-gel9.onrender.com/api';
