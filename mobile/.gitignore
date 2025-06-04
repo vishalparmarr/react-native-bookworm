@@ -38,3 +38,9 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# Android
+eas.json
+
+constants/api.js
+D:\VS Code\Projects\bookworm-app\mobile\.gitignore
