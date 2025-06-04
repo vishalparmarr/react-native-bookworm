@@ -1,6 +1,5 @@
 import { View, Text, KeyboardAvoidingView, Platform, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { useState } from 'react'
-
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 

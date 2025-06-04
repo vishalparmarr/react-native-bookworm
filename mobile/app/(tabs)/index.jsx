@@ -6,8 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../store/authStore';
 import styles from '../../assets/styles/home.styles'
 import COLORS from '../../constants/colors';
-import { formatPublishDate } from '../lib/util';
-import Loader from '../../components/Loader';
+import { formatPublishDate } from '../../lib/util';
+import Loader from '../components/Loader';
 import { API_URI } from '../../constants/api';
 
 export default function Home() {
@@ -20,48 +20,48 @@ export default function Home() {
 
   const { token } = useAuthStore();
 
-  const fetchBooks = useCallback(async (pageNum = 1, refreshing = false) => {
-    try {
-      if (refreshing) setIsRefreshing(true);
-      else if (pageNum === 1) setIsLoading(true);
+const fetchBooks = useCallback(async (pageNum = 1, refreshing = false) => {
+  if (!token || token === "null" || token === "undefined") {
+    setIsLoading(false);
+    setIsRefreshing(false);
+    return;
+  }
+  try {
+    if (refreshing) setIsRefreshing(true);
+    else if (pageNum === 1) setIsLoading(true);
 
-      const response = await fetch(`${API_URI}/books?page=${pageNum}&limit=5`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`
+    const response = await fetch(`${API_URI}/books?page=${pageNum}&limit=5`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch books');
+    }
+
+    setIsBooks(prevBooks => {
+      if (refreshing || pageNum === 1) return data.books;
+      const existingBooks = new Map(prevBooks.map(book => [book._id, book]));
+      data.books.forEach(book => {
+        if (!existingBooks.has(book._id)) {
+          existingBooks.set(book._id, book);
         }
       });
+      return Array.from(existingBooks.values());
+    });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch books');
-      }
-
-      setIsBooks(prevBooks => {
-        if (refreshing || pageNum === 1) return data.books;
-        
-        // Create a map of existing books for faster lookup
-        const existingBooks = new Map(prevBooks.map(book => [book._id, book]));
-        
-        // Add new unique books
-        data.books.forEach(book => {
-          if (!existingBooks.has(book._id)) {
-            existingBooks.set(book._id, book);
-          }
-        });
-        
-        return Array.from(existingBooks.values());
-      });
-
-      setIsHasMore(pageNum < data.totalPages);
-      setIsPage(pageNum);
-    } catch (error) {
-      console.log("Error fetching books:", error);
-    } finally {
-      if (refreshing) setIsRefreshing(false);
-      else setIsLoading(false);
-    }
-  }, [token]);
+    setIsHasMore(pageNum < data.totalPages);
+    setIsPage(pageNum);
+  } catch (error) {
+    console.log("Error fetching books:", error);
+  } finally {
+    if (refreshing) setIsRefreshing(false);
+    else setIsLoading(false);
+  }
+}, [token]);
 
   useEffect(() => {
     fetchBooks();

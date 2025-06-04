@@ -1,9 +1,10 @@
 import { SplashScreen, Stack, useRouter, useSegments } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import SafeScreen from "../components/SafeScreen";
 import { StatusBar } from "expo-status-bar";
-import { useFont, useFonts } from "expo-font";
+import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
+
+import SafeScreen from "./components/SafeScreen";
 import { useAuthStore } from "../store/authStore";
 
 SplashScreen.preventAutoHideAsync();
@@ -19,12 +20,12 @@ export default function RootLayout() {
   })
 
   useEffect(() => {
-    if(fontsLoaded) SplashScreen.hideAsync();
+    if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
   useEffect(() => {
     // If checkAuth is async, handle it like this:
     Promise.resolve(checkAuth()).finally(() => setLoading(false));
-  }, []);
+  });
 
   useEffect(() => {
     if (!loading) {

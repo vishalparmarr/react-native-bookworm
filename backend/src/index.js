@@ -9,8 +9,7 @@ import job from './lib/cron.js';
 
 const app = express();
 
-// Middleware
-app.use(cors());
+app.use(cors());  // Middleware
 app.use(express.json({ limit: '50mb' }));  // For parsing JSON bodies
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));  // For parsing URL-encoded bodies
 

@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react'
-import { View, Text, Alert, FlatList, TouchableOpacity, RefreshControl } from 'react-native'
+import { View, Text, Alert, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
-import { API_URI } from '../../constants/api'
 
+import { API_URI } from '../../constants/api'
 import { useAuthStore } from '../../store/authStore'
 import styles from '../../assets/styles/profile.styles'
-import ProfileHeader from '../../components/ProfileHeader'
-import LogoutButton from '../../components/LogoutButton'
+import ProfileHeader from '../components/ProfileHeader'
+import LogoutButton from '../components/LogoutButton'
 import COLORS from '../../constants/colors'
-import Loader from '../../components/Loader'
-import { ActivityIndicator } from 'react-native'
+import Loader from '../components/Loader'
 
 export default function Profile() {
   const [books, setIsBooks] = useState([]);
